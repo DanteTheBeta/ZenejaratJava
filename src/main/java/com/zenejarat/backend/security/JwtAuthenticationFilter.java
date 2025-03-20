@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -20,7 +21,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
 
     @Autowired
-    private CustomUserDetailsService userDetailsService;
+    private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -28,33 +29,42 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Ha a kérés a Swagger dokumentációs végpontokra irányul, ne végezzük el a JWT ellenőrzést.
+        // 🔹 Swagger dokumentáció végpontok figyelmen kívül hagyása
         String path = request.getRequestURI();
         if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.equals("/swagger-ui.html")) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        // 🔹 Authorization fejléc ellenőrzése
         String authHeader = request.getHeader("Authorization");
-        String jwt = null;
-        String username = null;
-
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            jwt = authHeader.substring(7);
-            try {
-                username = jwtUtil.getUsernameFromJwtToken(jwt);
-            } catch (Exception e) {
-                // Hibalogolás, ha szükséges
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
 
+        String jwt = authHeader.substring(7); // "Bearer " eltávolítása
+        String username = null;
+
+        try {
+            username = jwtUtil.extractUsername(jwt); // 🔹 **Javított metódus neve**
+        } catch (Exception e) {
+            System.out.println("Hibás vagy lejárt JWT token: " + e.getMessage());
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        // 🔹 Ellenőrizzük, hogy a felhasználó még nincs bejelentkezve
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
             if (jwtUtil.validateJwtToken(jwt)) {
                 UsernamePasswordAuthenticationToken authToken =
                         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                System.out.println("Érvénytelen vagy lejárt JWT token.");
             }
         }
 

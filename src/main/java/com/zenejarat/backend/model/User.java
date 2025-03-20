@@ -41,7 +41,7 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    // Konstruktőrök
+    // Konstruktorok
     public User() {}
 
     public User(String username, String password, String email) {
