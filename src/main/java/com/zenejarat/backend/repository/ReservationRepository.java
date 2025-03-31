@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
-    // Egyedi lekérdezéseket itt definiálhatsz, ha szükséges
+    
 }
