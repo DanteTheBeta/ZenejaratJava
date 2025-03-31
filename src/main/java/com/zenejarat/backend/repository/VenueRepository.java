@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VenueRepository extends JpaRepository<Venue, Long> {
-    // Itt szükség esetén egyedi lekérdezéseket is definiálhatsz
+    
 }
