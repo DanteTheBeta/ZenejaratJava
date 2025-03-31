@@ -44,11 +44,12 @@ public class SecurityConfig {
 
                 // Itt határozom meg, hogy mely végpontokat engedek elérésre kinek.
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register").permitAll() // Ezek bárki számára elérhetőek.
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // A dokumentáció is nyilvános.
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Ezeket csak admin érheti el.
-                        .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN") // Ezeket felhasználó és admin is elérheti.
-                        .anyRequest().authenticated() // Minden más végponthoz hitelesítés szükséges.
+                        .requestMatchers("/api/auth/**").permitAll() // ✅ Az összes auth-végpont elérhető (login, register, me stb.)
+                        .requestMatchers(HttpMethod.POST, "/api/users").permitAll() // ✅ Engedélyezem a regisztrációt ezen a végponton is
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll() // Swagger dokumentáció nyilvános
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Csak admin érheti el
+                        .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN") // Felhasználó és admin is elérheti
+                        .anyRequest().authenticated() // Minden máshoz hitelesítés szükséges
                 )
 
                 // Beállítom, hogy milyen hitelesítési szolgáltatót használjak.
@@ -57,7 +58,7 @@ public class SecurityConfig {
                 // A JWT szűrőt beillesztem a filterláncba a jelszó alapú hitelesítő elé.
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
+        return http.build(); // Visszaadom a konfigurált biztonsági szűrőláncot.
     }
 
     @Bean

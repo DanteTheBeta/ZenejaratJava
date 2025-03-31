@@ -34,7 +34,7 @@ public class AuthController {
     @Autowired
     private PasswordEncoder passwordEncoder; // Ezzel kódolom a jelszavakat regisztrációkor.
 
-    // ✅ Regisztráció végpont
+    //  Regisztráció végpont
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody User user) {
         // Ellenőrzöm, hogy a felhasználónév foglalt-e.
@@ -49,7 +49,7 @@ public class AuthController {
         // Jelszót titkosítok a mentés előtt.
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
-        // 🔒 Alapértelmezett szerepkört állítok be, ha nincs megadva.
+        //  Alapértelmezett szerepkört állítok be, ha nincs megadva.
         if (user.getRole() == null) {
             user.setRole(com.zenejarat.backend.model.Role.ROLE_USER);
         }
@@ -59,7 +59,7 @@ public class AuthController {
         return ResponseEntity.ok("Sikeres regisztráció!");
     }
 
-    // 🔑 Bejelentkezési végpont + JWT token generálás
+    //  Bejelentkezési végpont + JWT token generálás
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
         try {
@@ -78,7 +78,7 @@ public class AuthController {
         }
     }
 
-    // 👤 Visszaadom a jelenleg bejelentkezett felhasználó adatait a JWT token alapján
+    //  Visszaadom a jelenleg bejelentkezett felhasználó adatait a JWT token alapján
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String token) {
         try {

@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
-    // Itt egyedi lekérdezéseket is definiálhatsz, ha szükséges
+    
 }

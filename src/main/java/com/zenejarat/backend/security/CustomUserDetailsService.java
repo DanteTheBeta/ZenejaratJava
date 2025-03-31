@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         User appUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        // 🔹 Létrehozok egy authority-t (jogosultságot) a szerepkör alapján.
+        //  Létrehozok egy authority-t (jogosultságot) a szerepkör alapján.
         List<GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(appUser.getRole().name()) // Pl. ROLE_USER vagy ROLE_ADMIN
         );

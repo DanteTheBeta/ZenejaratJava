@@ -10,13 +10,13 @@ import java.util.function.Function;
 @Component // Ezzel regisztrálom a JwtUtil-t a Spring Context-be.
 public class JwtUtil {
 
-    // 🔐 Titkos kulcs a JWT aláíráshoz (base64-ben kódolt)
+    //  Titkos kulcs a JWT aláíráshoz (base64-ben kódolt)
     private final String jwtSecret = Base64.getEncoder().encodeToString("mySecretKey".getBytes());
 
-    // ⏰ Token lejárati idő: 24 óra (ezredmásodpercben)
+    //  Token lejárati idő: 24 óra (ezredmásodpercben)
     private final long jwtExpirationMs = 86400000;
 
-    // 🔐 JWT token generálása a felhasználónév alapján
+    //  JWT token generálása a felhasználónév alapján
     public String generateJwtToken(String username) {
         return Jwts.builder()
                 .setSubject(username) // Beállítom a felhasználónevet a token tartalmaként (subject).
@@ -26,23 +26,23 @@ public class JwtUtil {
                 .compact(); // Végül összeállítom a tokent.
     }
 
-    // 👤 Felhasználónév (subject) kinyerése a tokenből
+    //  Felhasználónév (subject) kinyerése a tokenből
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
-    // ⏳ Lejárati dátum kinyerése a tokenből
+    //  Lejárati dátum kinyerése a tokenből
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    // 📦 Általános claim kinyerő – megadott művelettel dolgozom fel a claim-et
+    //  Általános claim kinyerő – megadott művelettel dolgozom fel a claim-et
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token); // Kinyerem az összes claim-et
         return claimsResolver.apply(claims); // Majd alkalmazom a műveletet (pl. getSubject, getExpiration stb.)
     }
 
-    // 🔍 Token összes claim-jének kinyerése (belső segédfüggvény)
+    //  Token összes claim-jének kinyerése (belső segédfüggvény)
     private Claims extractAllClaims(String token) {
         return Jwts.parser()
                 .setSigningKey(jwtSecret) // Beállítom a titkos kulcsot.
@@ -50,7 +50,7 @@ public class JwtUtil {
                 .getBody(); // Visszaadom a token tartalmát (payload).
     }
 
-    // ✅ Token érvényességének ellenőrzése
+    //  Token érvényességének ellenőrzése
     public boolean validateJwtToken(String token) {
         try {
             Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token); // Megpróbálom dekódolni.

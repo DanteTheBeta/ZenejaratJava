@@ -32,13 +32,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // 🔹 Ha a kérés Swagger-hez tartozik, nem futtatom le a JWT ellenőrzést.
+        //  Ha a kérés Swagger-hez tartozik, nem futtatom le a JWT ellenőrzést.
         if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.equals("/swagger-ui.html")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // 🔹 Kinyerem az Authorization fejlécet
+        //  Kinyerem az Authorization fejlécet
         String authHeader = request.getHeader("Authorization");
 
         // Ha nincs fejléc vagy nem Bearer token, továbbengedem a kérést ellenőrzés nélkül.
@@ -59,7 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 🔐 Ha még nincs bejelentkezve a felhasználó, megpróbálom autentikálni a JWT alapján
+        //  Ha még nincs bejelentkezve a felhasználó, megpróbálom autentikálni a JWT alapján
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
