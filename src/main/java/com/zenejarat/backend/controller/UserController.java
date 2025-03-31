@@ -10,53 +10,49 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/api/users")
+@RestController // Ez egy REST vezérlő, amely HTTP kérésekre válaszol felhasználókkal kapcsolatban.
+@RequestMapping("/api/users") // Az összes végpont az /api/users útvonal alá tartozik.
 public class UserController {
 
     private final UserService userService;
 
     @Autowired
     public UserController(UserService userService) {
-        this.userService = userService;
+        this.userService = userService; // Konstruktoron keresztül megkapom a felhasználókat kezelő szolgáltatást.
     }
 
-    // Összes felhasználó lekérdezése
-    @GetMapping
+    @GetMapping // Lekérem az összes felhasználót.
     public List<User> getAllUsers() {
-        return userService.getAllUsers();
+        return userService.getAllUsers(); // A szolgáltatáson keresztül kérem a teljes listát.
     }
 
-    // Egy felhasználó lekérdezése ID alapján
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") // Lekérek egy adott felhasználót ID alapján.
     public ResponseEntity<User> getUserById(@PathVariable Long id) {
-        Optional<User> user = userService.getUserById(id);
+        Optional<User> user = userService.getUserById(id); // Megpróbálom lekérni a felhasználót.
         return user.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nincs ilyen, 404-et adok vissza.
     }
 
-    // Felhasználó létrehozása
-    @PostMapping
+    @PostMapping // Létrehozok egy új felhasználót.
     public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
+        // Ellenőrzöm, hogy a felhasználónév már foglalt-e.
         if (userService.isUsernameTaken(user.getUsername())) {
-            return ResponseEntity.badRequest().body(null);
+            return ResponseEntity.badRequest().body(null); // Ha igen, hibát küldök vissza.
         }
-        User savedUser = userService.saveUser(user);
-        return ResponseEntity.ok(savedUser);
+        User savedUser = userService.saveUser(user); // Elmentem a felhasználót.
+        return ResponseEntity.ok(savedUser); // Visszaküldöm a mentett objektumot.
     }
 
-    // Felhasználó frissítése ID alapján
-    @PutMapping("/{id}")
+    @PutMapping("/{id}") // Frissítem egy felhasználó adatait ID alapján.
     public ResponseEntity<User> updateUser(@PathVariable Long id, @Valid @RequestBody User userDetails) {
-        Optional<User> updatedUser = userService.updateUser(id, userDetails);
+        Optional<User> updatedUser = userService.updateUser(id, userDetails); // Meghívom a frissítő metódust.
         return updatedUser.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nem található, 404-et adok.
     }
 
-    // Felhasználó törlése ID alapján
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}") // Törlöm a felhasználót ID alapján.
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+        userService.deleteUser(id); // Meghívom a törlő metódust a szolgáltatásban.
+        return ResponseEntity.noContent().build(); // Sikeres törlés esetén 204-es státuszt küldök.
     }
 }

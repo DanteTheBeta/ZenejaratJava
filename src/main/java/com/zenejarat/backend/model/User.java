@@ -10,18 +10,18 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "users")
-@EntityListeners(AuditingEntityListener.class)
+@Entity // Ezzel jelzem, hogy ez egy JPA entitás.
+@Table(name = "users") // A hozzárendelt tábla neve az adatbázisban: users.
+@EntityListeners(AuditingEntityListener.class) // Automatikusan kezelem a létrehozási és módosítási időbélyegeket.
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Azonosítót automatikusan generálom.
     private Long id;
 
     @NotBlank(message = "A felhasználónév nem lehet üres")
     @Size(min = 3, max = 50, message = "A felhasználónév 3 és 50 karakter között legyen")
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true) // Nem lehet üres és nem ismétlődhet.
     private String username;
 
     @NotBlank(message = "A jelszó nem lehet üres")
@@ -34,23 +34,29 @@ public class User {
     @Column(nullable = false)
     private String email;
 
-    @CreatedDate
+    @Enumerated(EnumType.STRING) // A szerepkört szövegként tárolom (nem ordinal).
+    @Column(nullable = false)
+    private Role role;
+
+    @CreatedDate // Automatikusan beállítom a létrehozás idejét.
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @LastModifiedDate
+    @LastModifiedDate // Automatikusan frissül, ha módosul a rekord.
     private LocalDateTime updatedAt;
 
-    // Konstruktorok
+    // Alapértelmezett konstruktor – szükséges a JPA működéséhez.
     public User() {}
 
-    public User(String username, String password, String email) {
+    // Paraméteres konstruktor – gyors példányosításra használom.
+    public User(String username, String password, String email, Role role) {
         this.username = username;
         this.password = password;
         this.email = email;
+        this.role = role;
     }
 
-    // Getterek és setterek
+    // Getterek és setterek – ezekkel érem el és állítom be a mezőket.
     public Long getId() {
         return id;
     }
@@ -81,6 +87,14 @@ public class User {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public LocalDateTime getCreatedAt() {

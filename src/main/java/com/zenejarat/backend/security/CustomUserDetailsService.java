@@ -14,24 +14,28 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
-@Service
+@Service // Ezzel regisztrálom a Spring Context-ben mint szolgáltatást.
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
-    private UserRepository userRepository;
+    private UserRepository userRepository; // Ezen keresztül érem el az adatbázisban tárolt felhasználókat.
 
     @Override
-    @Transactional
+    @Transactional // Gondoskodom róla, hogy az adatbázis művelet tranzakcióban történjen.
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // Megpróbálom lekérni a felhasználót a megadott felhasználónév alapján.
         User appUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        // 🔹 Felhasználói szerepkör beállítása (ha később kezelni akarod a role-okat)
-        List<GrantedAuthority> authorities = Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
+        // 🔹 Létrehozok egy authority-t (jogosultságot) a szerepkör alapján.
+        List<GrantedAuthority> authorities = Collections.singletonList(
+                new SimpleGrantedAuthority(appUser.getRole().name()) // Pl. ROLE_USER vagy ROLE_ADMIN
+        );
 
+        // Visszatérek egy UserDetails példánnyal, amit a Spring Security használ a hitelesítéshez.
         return new org.springframework.security.core.userdetails.User(
                 appUser.getUsername(),
-                appUser.getPassword(),  // 🔹 **Ez már egy BCrypt hash kell legyen az adatbázisban!**
+                appUser.getPassword(),  // 🔐 A jelszó hash-elve van (BCrypt-tel)
                 authorities
         );
     }

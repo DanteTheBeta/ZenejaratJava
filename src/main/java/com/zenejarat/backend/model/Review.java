@@ -7,43 +7,42 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "reviews")
-@EntityListeners(AuditingEntityListener.class)
+@Entity // Ez az osztály adatbázis entitásként működik.
+@Table(name = "reviews") // Az adatbázisban a "reviews" nevű táblához tartozik.
+@EntityListeners(AuditingEntityListener.class) // Bekapcsolom az automatikus időbélyeg-kezelést.
 public class Review {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Az ID értékét automatikusan generálom.
     private Long id;
 
-    // Például egy értékelés 1-5 közötti szám lehet
-    @Column(nullable = false)
+    @Column(nullable = false) // A "rating" mező kötelező, például 1-5 közötti szám.
     private int rating;
 
-    @Column(length = 1000)
+    @Column(length = 1000) // A megjegyzés maximum 1000 karakter hosszú lehet.
     private String comment;
 
-    // A review a Venue-hoz tartozik
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "venue_id", nullable = false)
+    // Egy értékelés mindig egy adott helyszínhez tartozik.
+    @ManyToOne(fetch = FetchType.LAZY) // Lusta betöltéssel kapcsolom össze a Venue entitással.
+    @JoinColumn(name = "venue_id", nullable = false) // A kapcsolódó oszlop neve az adatbázisban.
     private Venue venue;
 
-    // Opcionálisan a review-t egy User is írhatja
+    // Egy felhasználó is írhat értékelést – kötelező kapcsolat.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private com.zenejarat.backend.model.User user;
 
-    @CreatedDate
+    @CreatedDate // A létrehozás dátumát automatikusan kezelem.
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @LastModifiedDate
+    @LastModifiedDate // A módosítás dátumát is automatikusan frissítem.
     private LocalDateTime updatedAt;
 
-    // Alapértelmezett konstruktor
+    // Alapértelmezett konstruktor a JPA számára.
     public Review() {}
 
-    // Paraméteres konstruktor
+    // Paraméteres konstruktor – így egyszerűen létre tudok hozni egy új értékelést.
     public Review(int rating, String comment, Venue venue, com.zenejarat.backend.model.User user) {
         this.rating = rating;
         this.comment = comment;
@@ -51,40 +50,46 @@ public class Review {
         this.user = user;
     }
 
-    // Getterek és setterek
+    // Getter és setter metódusok – ezekkel érem el és módosítom a mezőket.
     public Long getId() {
         return id;
     }
     public void setId(Long id) {
         this.id = id;
     }
+
     public int getRating() {
         return rating;
     }
     public void setRating(int rating) {
         this.rating = rating;
     }
+
     public String getComment() {
         return comment;
     }
     public void setComment(String comment) {
         this.comment = comment;
     }
+
     public Venue getVenue() {
         return venue;
     }
     public void setVenue(Venue venue) {
         this.venue = venue;
     }
+
     public com.zenejarat.backend.model.User getUser() {
         return user;
     }
     public void setUser(com.zenejarat.backend.model.User user) {
         this.user = user;
     }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }

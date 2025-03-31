@@ -7,42 +7,43 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "tickets")
-@EntityListeners(AuditingEntityListener.class)
+@Entity // Ezzel jelzem, hogy ez az osztály egy adatbázis entitást képvisel.
+@Table(name = "tickets") // A hozzá tartozó tábla neve az adatbázisban: tickets.
+@EntityListeners(AuditingEntityListener.class) // Engedélyezem az automatikus létrehozás/módosítás dátumkezelést.
 public class Ticket {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Azonosító automatikusan generálódik.
     private Long id;
 
-    // Példa: melyik eseményre szól a jegy
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", nullable = false)
+    // A jegy egy adott eseményhez tartozik.
+    @ManyToOne(fetch = FetchType.LAZY) // Lusta betöltést használok az Event esetén.
+    @JoinColumn(name = "event_id", nullable = false) // Az adatbázisban event_id néven tárolom az eseményhez való kapcsolatot.
     private Event event;
 
-    // A jegyet foglaló felhasználó
+    // A jegy egy adott felhasználóhoz tartozik.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    // Jegy státusz (például "FOGLALT", "MEGVÁSÁROLVA")
+    // A jegy státusza (pl. FOGLALT, MEGVÁSÁROLVA).
     @Column(nullable = false)
     private String status;
 
-    // Jegy ára
+    // A jegy ára.
     @Column(nullable = false)
     private double price;
 
-    @CreatedDate
-    @Column(updatable = false)
+    @CreatedDate // Automatikusan beállítom a létrehozás dátumát.
+    @Column(updatable = false) // Ez a dátum nem módosítható utólag.
     private LocalDateTime createdAt;
 
-    @LastModifiedDate
+    @LastModifiedDate // Automatikusan frissül, ha módosítom a jegyet.
     private LocalDateTime updatedAt;
 
-    public Ticket() {}
+    public Ticket() {} // Alapértelmezett konstruktor a JPA-hoz.
 
+    // Paraméteres konstruktor – egyszerűsített példányosítás.
     public Ticket(Event event, User user, String status, double price) {
         this.event = event;
         this.user = user;
@@ -50,7 +51,7 @@ public class Ticket {
         this.price = price;
     }
 
-    // Getterek és setterek
+    // Getterek és setterek – ezekkel érem el és módosítom az egyes mezőket.
     public Long getId() {
         return id;
     }

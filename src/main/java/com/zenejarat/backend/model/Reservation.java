@@ -8,72 +8,77 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "reservations")
-@EntityListeners(AuditingEntityListener.class)
+@Entity // Ez az osztály egy adatbázis entitást képvisel.
+@Table(name = "reservations") // A "reservations" nevű adatbázistáblához tartozik.
+@EntityListeners(AuditingEntityListener.class) // Figyelem a létrehozás és módosítás időpontját.
 public class Reservation {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) // Az ID automatikusan generálódik.
     private Long id;
 
-    // Egy helyszínhez több foglalás is tartozhat
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "venue_id", nullable = false)
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    // Egy helyszínhez több foglalás is tartozhat.
+    @ManyToOne(fetch = FetchType.LAZY) // A kapcsolódó helyszínt csak szükség esetén töltöm be.
+    @JoinColumn(name = "venue_id", nullable = false) // A "venue_id" oszlop kapcsolja össze a Venue-val.
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"}) // Kikerülöm a lazy betöltésből származó JSON hibákat.
     private Venue venue;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // A kezdési idő kötelező.
     private LocalDateTime startTime;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // A zárási idő is kötelező.
     private LocalDateTime endTime;
 
-    @CreatedDate
-    @Column(updatable = false)
+    @CreatedDate // Automatikusan beállítom, mikor lett létrehozva a foglalás.
+    @Column(updatable = false) // A létrehozás dátuma nem módosítható.
     private LocalDateTime createdAt;
 
-    @LastModifiedDate
+    @LastModifiedDate // Automatikusan frissül, ha módosítom a foglalást.
     private LocalDateTime updatedAt;
 
-    // Alapértelmezett konstruktor
+    // Alapértelmezett konstruktor a JPA működéséhez.
     public Reservation() {}
 
-    // Paraméteres konstruktor
+    // Paraméteres konstruktor – így egyszerűen tudok új foglalást létrehozni.
     public Reservation(Venue venue, LocalDateTime startTime, LocalDateTime endTime) {
         this.venue = venue;
         this.startTime = startTime;
         this.endTime = endTime;
     }
 
-    // Getterek és setterek
+    // Getter és setter metódusok – ezekkel érem el és módosítom a mezőket.
     public Long getId() {
         return id;
     }
     public void setId(Long id) {
         this.id = id;
     }
+
     public Venue getVenue() {
         return venue;
     }
     public void setVenue(Venue venue) {
         this.venue = venue;
     }
+
     public LocalDateTime getStartTime() {
         return startTime;
     }
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
+
     public LocalDateTime getEndTime() {
         return endTime;
     }
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
+
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }

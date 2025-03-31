@@ -9,56 +9,52 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Optional;
 
-@RestController
-@RequestMapping("/api/reservations")
+@RestController // Ezzel jelzem, hogy ez egy REST vezérlőosztály, ami HTTP kérésekre válaszol.
+@RequestMapping("/api/reservations") // Minden végpontom az /api/reservations útvonal alá fog tartozni.
 public class ReservationController {
 
     private final ReservationService reservationService;
 
     @Autowired
     public ReservationController(ReservationService reservationService) {
-        this.reservationService = reservationService;
+        this.reservationService = reservationService; // Konstruktoron keresztül megkapom a foglaláskezelő szolgáltatást.
     }
 
-    // Összes foglalás lekérdezése
-    @GetMapping
+    @GetMapping // Lekérem az összes foglalást.
     public List<Reservation> getAllReservations() {
-        return reservationService.getAllReservations();
+        return reservationService.getAllReservations(); // Meghívom a szolgáltatást, hogy adja vissza az összes foglalást.
     }
 
-    // Egy foglalás lekérdezése ID alapján
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") // Lekérek egy adott foglalást azonosító alapján.
     public ResponseEntity<Reservation> getReservationById(@PathVariable Long id) {
-        Optional<Reservation> reservation = reservationService.getReservationById(id);
+        Optional<Reservation> reservation = reservationService.getReservationById(id); // Megpróbálom lekérni a foglalást.
         return reservation.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nincs, 404-et adok vissza.
     }
 
-    // Új foglalás létrehozása
-    @PostMapping
+    @PostMapping // Létrehozok egy új foglalást.
     public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-        Reservation savedReservation = reservationService.saveReservation(reservation);
-        return ResponseEntity.ok(savedReservation);
+        Reservation savedReservation = reservationService.saveReservation(reservation); // Elmentem az új foglalást.
+        return ResponseEntity.ok(savedReservation); // Visszaküldöm a mentett objektumot.
     }
 
-    // Foglalás frissítése ID alapján
-    @PutMapping("/{id}")
+    @PutMapping("/{id}") // Frissítem egy meglévő foglalást ID alapján.
     public ResponseEntity<Reservation> updateReservation(@PathVariable Long id, @RequestBody Reservation reservationDetails) {
         Optional<Reservation> updatedReservation = reservationService.getReservationById(id)
                 .map(existingReservation -> {
+                    // Beállítom az új értékeket a meglévő foglalásban.
                     existingReservation.setStartTime(reservationDetails.getStartTime());
                     existingReservation.setEndTime(reservationDetails.getEndTime());
                     existingReservation.setVenue(reservationDetails.getVenue());
-                    return reservationService.saveReservation(existingReservation);
+                    return reservationService.saveReservation(existingReservation); // Elmentem a frissített adatokat.
                 });
         return updatedReservation.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nem találom, 404-et adok.
     }
 
-    // Foglalás törlése ID alapján
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}") // Törlök egy foglalást az ID alapján.
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
-        reservationService.deleteReservation(id);
-        return ResponseEntity.noContent().build();
+        reservationService.deleteReservation(id); // Meghívom a szolgáltatást a törléshez.
+        return ResponseEntity.noContent().build(); // 204 No Content választ adok, ha sikeres volt.
     }
 }
