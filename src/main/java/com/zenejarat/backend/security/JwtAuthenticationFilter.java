@@ -59,7 +59,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+<<<<<<< HEAD
         //  Ha még nincs bejelentkezve a felhasználó, megpróbálom autentikálni a JWT alapján
+=======
+        // Ha még nincs bejelentkezve a felhasználó, megpróbálom autentikálni a JWT alapján
+>>>>>>> f2520d3098bda9c300b7fd678ce140fa8e26ba11
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 

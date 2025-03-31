@@ -27,7 +27,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         User appUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
+<<<<<<< HEAD
         //  Létrehozok egy authority-t (jogosultságot) a szerepkör alapján.
+=======
+        // Létrehozok egy authority-t (jogosultságot) a szerepkör alapján.
+>>>>>>> f2520d3098bda9c300b7fd678ce140fa8e26ba11
         List<GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(appUser.getRole().name()) // Pl. ROLE_USER vagy ROLE_ADMIN
         );
@@ -35,7 +39,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         // Visszatérek egy UserDetails példánnyal, amit a Spring Security használ a hitelesítéshez.
         return new org.springframework.security.core.userdetails.User(
                 appUser.getUsername(),
-                appUser.getPassword(),  // 🔐 A jelszó hash-elve van (BCrypt-tel)
+                appUser.getPassword(),  //  A jelszó hash-elve van (BCrypt-tel)
                 authorities
         );
     }
