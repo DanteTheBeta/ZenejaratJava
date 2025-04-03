@@ -4,57 +4,84 @@ import com.zenejarat.backend.model.Reservation;
 import com.zenejarat.backend.service.ReservationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize; // Jogosultságkezelés annotáció
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController // Ezzel jelzem, hogy ez egy REST vezérlőosztály, ami HTTP kérésekre válaszol.
-@RequestMapping("/api/reservations") // Minden végpontom az /api/reservations útvonal alá fog tartozni.
+@RequestMapping("/api/reservations") // Minden végpont az /api/reservations útvonal alá tartozik.
 public class ReservationController {
 
     private final ReservationService reservationService;
 
     @Autowired
     public ReservationController(ReservationService reservationService) {
-        this.reservationService = reservationService; // Konstruktoron keresztül megkapom a foglaláskezelő szolgáltatást.
+        // Konstruktoron keresztül megkapom a foglaláskezelő szolgáltatást.
+        this.reservationService = reservationService;
     }
 
-    @GetMapping // Lekérem az összes foglalást.
+    //  Csak admin láthatja az összes foglalást
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
     public List<Reservation> getAllReservations() {
-        return reservationService.getAllReservations(); // Meghívom a szolgáltatást, hogy adja vissza az összes foglalást.
+        // Meghívom a szolgáltatást, hogy visszaadja az összes foglalást
+        return reservationService.getAllReservations();
     }
 
-    @GetMapping("/{id}") // Lekérek egy adott foglalást azonosító alapján.
+    //  Csak admin kérhet le egy adott foglalást ID alapján
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{id}")
     public ResponseEntity<Reservation> getReservationById(@PathVariable Long id) {
-        Optional<Reservation> reservation = reservationService.getReservationById(id); // Megpróbálom lekérni a foglalást.
+        // Megpróbálom lekérni a foglalást az ID alapján
+        Optional<Reservation> reservation = reservationService.getReservationById(id);
+
+        // Ha megtaláltam, visszaadom 200 OK-kal, különben 404-et küldök
         return reservation.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nincs, 404-et adok vissza.
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping // Létrehozok egy új foglalást.
+    //  Csak bejelentkezett felhasználó hozhat létre foglalást
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PostMapping
     public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-        Reservation savedReservation = reservationService.saveReservation(reservation); // Elmentem az új foglalást.
-        return ResponseEntity.ok(savedReservation); // Visszaküldöm a mentett objektumot.
+        // Elmentem az új foglalást a szolgáltatáson keresztül
+        Reservation savedReservation = reservationService.saveReservation(reservation);
+
+        // Visszaküldöm a mentett objektumot 200 OK válasszal
+        return ResponseEntity.ok(savedReservation);
     }
 
-    @PutMapping("/{id}") // Frissítem egy meglévő foglalást ID alapján.
+    //  Csak admin frissíthet foglalást
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
     public ResponseEntity<Reservation> updateReservation(@PathVariable Long id, @RequestBody Reservation reservationDetails) {
+        // Megpróbálom lekérni az eredeti foglalást ID alapján
         Optional<Reservation> updatedReservation = reservationService.getReservationById(id)
                 .map(existingReservation -> {
-                    // Beállítom az új értékeket a meglévő foglalásban.
+                    // Beállítom az új értékeket
                     existingReservation.setStartTime(reservationDetails.getStartTime());
                     existingReservation.setEndTime(reservationDetails.getEndTime());
                     existingReservation.setVenue(reservationDetails.getVenue());
-                    return reservationService.saveReservation(existingReservation); // Elmentem a frissített adatokat.
+
+                    // Elmentem az új értékeket és visszaadom
+                    return reservationService.saveReservation(existingReservation);
                 });
+
+        // Ha sikerült frissíteni, visszaadom, ha nem, 404-et küldök
         return updatedReservation.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nem találom, 404-et adok.
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}") // Törlök egy foglalást az ID alapján.
+    //  Csak admin törölhet foglalást
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteReservation(@PathVariable Long id) {
-        reservationService.deleteReservation(id); // Meghívom a szolgáltatást a törléshez.
-        return ResponseEntity.noContent().build(); // 204 No Content választ adok, ha sikeres volt.
+        // Meghívom a szolgáltatást a törléshez
+        reservationService.deleteReservation(id);
+
+        // 204 No Content válasszal jelzem, hogy sikeres volt
+        return ResponseEntity.noContent().build();
     }
 }

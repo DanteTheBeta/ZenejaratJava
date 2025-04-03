@@ -6,11 +6,12 @@ import com.zenejarat.backend.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Optional;
 
-@RestController // Ez a vezérlő REST API végpontokat kezel jegyekhez.
-@RequestMapping("/api/tickets") // Minden végpont az /api/tickets útvonal alá tartozik.
+@RestController // Ezzel jelzem, hogy ez egy REST típusú kontroller, amely HTTP kérésekre válaszol.
+@RequestMapping("/api/tickets") // Az összes jegyhez tartozó végpont az /api/tickets útvonal alá kerül.
 public class TicketController {
 
     private final TicketService ticketService;
@@ -18,25 +19,46 @@ public class TicketController {
 
     @Autowired
     public TicketController(TicketService ticketService, EmailService emailService) {
-        this.ticketService = ticketService; // A jegyek kezelését végző szolgáltatást itt kapom meg.
-        this.emailService = emailService;   // Az email küldéséhez szükséges szolgáltatást itt injektálom.
+        // Konstruktoron keresztül kapom meg a jegykezelő és email szolgáltatásokat.
+        this.ticketService = ticketService;
+        this.emailService = emailService;
     }
 
     @GetMapping // Lekérem az összes jegyet.
     public List<Ticket> getAllTickets() {
-        return ticketService.getAllTickets(); // A szolgáltatáson keresztül visszakérem az összes jegyet.
+        // Meghívom a service réteget, hogy visszakapjam az összes jegyet.
+        return ticketService.getAllTickets();
     }
 
-    @GetMapping("/{id}") // Egy adott jegyet kérek le ID alapján.
+    @GetMapping("/{id}") // Lekérek egy adott jegyet ID alapján.
     public ResponseEntity<Ticket> getTicketById(@PathVariable Long id) {
-        Optional<Ticket> ticket = ticketService.getTicketById(id); // Megpróbálom lekérni a jegyet az adatbázisból.
+        // Megpróbálom lekérni a jegyet az ID alapján.
+        Optional<Ticket> ticket = ticketService.getTicketById(id);
+
+        // Ha megtaláltam, visszaküldöm, ha nem, 404-et adok vissza.
         return ticket.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nincs ilyen jegy, 404-et adok vissza.
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping // Létrehozok egy új jegyet, és visszaigazoló emailt küldök róla.
-    public ResponseEntity<Ticket> createTicket(@RequestBody Ticket ticket) {
-        Ticket savedTicket = ticketService.saveTicket(ticket); // Elmentem a jegyet.
+    @PostMapping // Létrehozok egy új jegyet és küldök visszaigazoló emailt.
+    public ResponseEntity<?> createTicket(@RequestBody Ticket ticket) {
+        // Lekérem az eseményt, amelyhez a jegyet vásárolják.
+        var event = ticket.getEvent();
+
+        // Megnézem, van-e még elérhető hely az eseményen.
+        if (event.getAvailableSeats() <= 0) {
+            // Ha nincs több jegy, hibát küldök vissza.
+            return ResponseEntity.badRequest().body(" Nincs több elérhető jegy erre az eseményre.");
+        }
+
+        // Elmentem a jegyet, ha van még hely.
+        Ticket savedTicket = ticketService.saveTicket(ticket);
+
+        // Csökkentem a szabad férőhelyek számát az eseményen.
+        event.setAvailableSeats(event.getAvailableSeats() - 1);
+
+        // Frissítem az eseményt az új jegyszámmal.
+        ticketService.updateEventAfterTicketPurchase(event); // ezt a metódust a service-ben valósítom meg
 
         // Összeállítom a visszaigazoló email tartalmát.
         String subject = "Jegyvásárlás visszaigazolása";
@@ -47,26 +69,35 @@ public class TicketController {
         // Elküldöm az emailt a felhasználónak.
         emailService.sendConfirmationEmail(savedTicket.getUser().getEmail(), subject, text);
 
-        return ResponseEntity.ok(savedTicket); // Visszaküldöm a mentett jegyet.
+        // Visszaküldöm a mentett jegyet válaszként.
+        return ResponseEntity.ok(savedTicket);
     }
 
-    @PutMapping("/{id}") // Frissítem egy meglévő jegy adatait ID alapján.
+    @PutMapping("/{id}") // Frissítem egy meglévő jegyet azonosító alapján.
     public ResponseEntity<Ticket> updateTicket(@PathVariable Long id, @RequestBody Ticket ticketDetails) {
+        // Megpróbálom lekérni a meglévő jegyet.
         Optional<Ticket> updatedTicket = ticketService.getTicketById(id).map(existingTicket -> {
-            // Frissítem a mezőket a beérkezett adatok alapján.
+            // Beállítom az új értékeket.
             existingTicket.setStatus(ticketDetails.getStatus());
             existingTicket.setPrice(ticketDetails.getPrice());
             existingTicket.setEvent(ticketDetails.getEvent());
             existingTicket.setUser(ticketDetails.getUser());
-            return ticketService.saveTicket(existingTicket); // Elmentem a frissített jegyet.
+
+            // Elmentem a frissített jegyet.
+            return ticketService.saveTicket(existingTicket);
         });
+
+        // Visszatérek az eredménnyel vagy 404 hibával.
         return updatedTicket.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nem található a jegy, 404-et adok.
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}") // Törlöm a jegyet azonosító alapján.
+    @DeleteMapping("/{id}") // Törlök egy jegyet ID alapján.
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id) {
-        ticketService.deleteTicket(id); // Meghívom a törlő metódust.
-        return ResponseEntity.noContent().build(); // 204-es státuszkódot küldök vissza, ami üres választ jelent.
+        // Meghívom a törlő szolgáltatást.
+        ticketService.deleteTicket(id);
+
+        // Visszatérek 204 No Content válasszal.
+        return ResponseEntity.noContent().build();
     }
 }

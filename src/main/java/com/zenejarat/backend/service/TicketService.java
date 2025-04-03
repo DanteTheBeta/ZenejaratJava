@@ -1,7 +1,9 @@
 package com.zenejarat.backend.service;
 
 import com.zenejarat.backend.model.Ticket;
+import com.zenejarat.backend.model.Event;
 import com.zenejarat.backend.repository.TicketRepository;
+import com.zenejarat.backend.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -11,6 +13,9 @@ import java.util.Optional;
 public class TicketService {
 
     private final TicketRepository ticketRepository;
+
+    @Autowired
+    private EventRepository eventRepository; // 🔹 Események frissítéséhez
 
     @Autowired
     public TicketService(TicketRepository ticketRepository) {
@@ -31,5 +36,10 @@ public class TicketService {
 
     public void deleteTicket(Long id) {
         ticketRepository.deleteById(id);
+    }
+
+    //  Ezt hívja a TicketController
+    public void updateEventAfterTicketPurchase(Event event) {
+        eventRepository.save(event);
     }
 }

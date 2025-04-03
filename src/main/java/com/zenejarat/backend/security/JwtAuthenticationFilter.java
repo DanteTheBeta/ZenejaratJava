@@ -32,13 +32,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        //  Ha a kérés Swagger-hez tartozik, nem futtatom le a JWT ellenőrzést.
+        // Ha a kérés Swagger-hez tartozik, nem futtatom le a JWT ellenőrzést.
         if (path.startsWith("/v3/api-docs") || path.startsWith("/swagger-ui") || path.equals("/swagger-ui.html")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        //  Kinyerem az Authorization fejlécet
+        // Kinyerem az Authorization fejlécet
         String authHeader = request.getHeader("Authorization");
 
         // Ha nincs fejléc vagy nem Bearer token, továbbengedem a kérést ellenőrzés nélkül.
@@ -54,16 +54,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             username = jwtUtil.extractUsername(jwt); // Kinyerem a felhasználónevet a tokenből.
         } catch (Exception e) {
-            System.out.println("⚠️ Hibás vagy lejárt JWT token: " + e.getMessage());
+            System.out.println(" Hibás vagy lejárt JWT token: " + e.getMessage());
             filterChain.doFilter(request, response);
             return;
         }
 
-<<<<<<< HEAD
-        //  Ha még nincs bejelentkezve a felhasználó, megpróbálom autentikálni a JWT alapján
-=======
         // Ha még nincs bejelentkezve a felhasználó, megpróbálom autentikálni a JWT alapján
->>>>>>> f2520d3098bda9c300b7fd678ce140fa8e26ba11
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
@@ -78,7 +74,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // Beállítom az autentikációt a SecurityContext-be
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             } else {
-                System.out.println("⚠️ Token érvénytelen vagy lejárt.");
+                System.out.println(" Token érvénytelen vagy lejárt.");
             }
         }
 

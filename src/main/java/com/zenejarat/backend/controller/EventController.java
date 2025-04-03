@@ -4,58 +4,81 @@ import com.zenejarat.backend.model.Event;
 import com.zenejarat.backend.service.EventService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize; //  Ezzel tudom védeni a végpontokat
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController // Ezzel jelzem, hogy ez egy REST típusú vezérlőosztály.
-@RequestMapping("/api/events") // Az összes végpont az /api/events útvonal alá fog tartozni.
+@RequestMapping("/api/events") // Az összes végpont az /api/events útvonal alá fog tartozik.
 public class EventController {
 
     private final EventService eventService;
 
     @Autowired
     public EventController(EventService eventService) {
-        this.eventService = eventService; // Konstruktoron keresztül kapom meg az eseményekhez tartozó szolgáltatást.
+        // Konstruktoron keresztül kapom meg az EventService példányt
+        this.eventService = eventService;
     }
 
-    @GetMapping // Lekérem az összes eseményt.
+    @GetMapping // Lekérem az összes eseményt. Ez publikus, nincs korlátozva.
     public List<Event> getAllEvents() {
-        return eventService.getAllEvents(); // Az összes eseményt visszaadom a szolgáltatásból.
+        // Meghívom a service réteget, és visszaadom az összes eseményt
+        return eventService.getAllEvents();
     }
 
-    @GetMapping("/{id}") // Lekérem az eseményt azonosító alapján.
+    @GetMapping("/{id}") // Lekérek egy konkrét eseményt azonosító alapján.
     public ResponseEntity<Event> getEventById(@PathVariable Long id) {
-        Optional<Event> event = eventService.getEventById(id); // Megpróbálom lekérni az eseményt.
+        // Megpróbálom lekérni az eseményt az id alapján
+        Optional<Event> event = eventService.getEventById(id);
+
+        // Ha megtaláltam, visszaadom 200 OK státusszal, ha nem, 404 NOT FOUND-ot küldök
         return event.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nincs ilyen esemény, 404-et adok vissza.
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping // Létrehozok egy új eseményt.
+    // 🔐 Csak ADMIN szerepkörű felhasználók hozhatnak létre eseményt
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping
     public ResponseEntity<Event> createEvent(@RequestBody Event event) {
-        Event savedEvent = eventService.saveEvent(event); // Elmentem az eseményt.
-        return ResponseEntity.ok(savedEvent); // Visszaküldöm a mentett eseményt.
+        // Meghívom a service réteget, hogy mentse el az eseményt
+        Event savedEvent = eventService.saveEvent(event);
+
+        // Visszaadom a mentett eseményt 200 OK válaszként
+        return ResponseEntity.ok(savedEvent);
     }
 
-    @PutMapping("/{id}") // Frissítem egy meglévő esemény adatait azonosító alapján.
+    // 🔐 Csak ADMIN frissíthet eseményt
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}")
     public ResponseEntity<Event> updateEvent(@PathVariable Long id, @RequestBody Event eventDetails) {
+        // Megpróbálom lekérni az eseményt, amit frissíteni szeretnék
         Optional<Event> updatedEvent = eventService.getEventById(id)
                 .map(existingEvent -> {
-                    // Frissítem az esemény mezőit az új értékekkel.
+                    // Itt frissítem a meglévő esemény mezőit az új adatokkal
                     existingEvent.setName(eventDetails.getName());
                     existingEvent.setDescription(eventDetails.getDescription());
                     existingEvent.setEventDate(eventDetails.getEventDate());
                     existingEvent.setVenue(eventDetails.getVenue());
-                    return eventService.saveEvent(existingEvent); // Elmentem a frissített eseményt.
+
+                    // Mentem az új adatokat és visszatérek az eredménnyel
+                    return eventService.saveEvent(existingEvent);
                 });
+
+        // Ha sikerült frissíteni, visszatérek az új eseménnyel, ha nem találtam, 404-et küldök
         return updatedEvent.map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build()); // Ha nem találom az eseményt, 404-et adok.
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @DeleteMapping("/{id}") // Törlöm az eseményt azonosító alapján.
+    //  Csak ADMIN törölhet eseményt
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
-        eventService.deleteEvent(id); // Meghívom a szolgáltatást, hogy törölje az eseményt.
-        return ResponseEntity.noContent().build(); // Üres választ küldök vissza, ami a sikeres törlés jele.
+        // Meghívom a service-t, hogy törölje az eseményt
+        eventService.deleteEvent(id);
+
+        // Visszatérek üres (204 No Content) válasszal
+        return ResponseEntity.noContent().build();
     }
 }

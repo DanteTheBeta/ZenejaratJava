@@ -29,6 +29,9 @@ public class Event {
     @JoinColumn(name = "venue_id", nullable = false) // A kapcsolódó oszlop neve az adatbázisban.
     private Venue venue;
 
+    @Column(name = "available_seats", nullable = false) // Új mező a szabad férőhelyekhez.
+    private int availableSeats;
+
     @CreatedDate // Automatikusan beállítom a létrehozás idejét.
     @Column(updatable = false) // Ez az érték nem módosítható utólag.
     private LocalDateTime createdAt;
@@ -40,11 +43,12 @@ public class Event {
     public Event() {}
 
     // Paraméteres konstruktor – ezzel egyszerűen létre tudok hozni egy példányt.
-    public Event(String name, String description, LocalDateTime eventDate, Venue venue) {
+    public Event(String name, String description, LocalDateTime eventDate, Venue venue, int availableSeats) {
         this.name = name;
         this.description = description;
         this.eventDate = eventDate;
         this.venue = venue;
+        this.availableSeats = availableSeats;
     }
 
     // Getter és setter metódusok – ezekkel érem el és módosítom a mezőket.
@@ -81,6 +85,14 @@ public class Event {
     }
     public void setVenue(Venue venue) {
         this.venue = venue;
+    }
+
+    // Ez a mező mutatja, mennyi jegy/jelentkező fér még el az eseményen.
+    public int getAvailableSeats() {
+        return availableSeats;
+    }
+    public void setAvailableSeats(int availableSeats) {
+        this.availableSeats = availableSeats;
     }
 
     public LocalDateTime getCreatedAt() {
